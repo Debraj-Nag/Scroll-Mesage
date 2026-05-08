@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Royal Scroll Messenger</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@700&family=EB+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --gold: #d4af37;
+      --gold-light: #f5deb3;
+      --wine: #4b0012;
+      --wine-light: #7b112b;
+      --parchment: #f6e7c1;
+      --parchment-dark: #e8d2a2;
+      --ink: #2b1b10;
+      --shadow: rgba(0,0,0,0.35);
+    }
+
+    body {
+      min-height: 100vh;
+      overflow-x: hidden;
+      background:
+        radial-gradient(circle at top, rgba(255,215,120,0.08), transparent 40%),
+        linear-gradient(to bottom, #120008, #2b0012 45%, #120008);
+      font-family: 'EB Garamond', serif;
+      color: white;
+      position: relative;
+    }
+
+    /* Background Stars */
+
+    .stars {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      overflow: hidden;
+    }
+
+    .star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: rgba(255,255,255,0.8);
+      border-radius: 50%;
+      animation: twinkle 4s infinite ease-in-out;
+    }
+
+    @keyframes twinkle {
+      0%,100% { opacity: 0.2; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.7); }
+    }
+
+    /* Main Layout */
+
+    .container {
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 30px;
+    }
+
+    /* ================= COMPOSER ================= */
+
+    .composer {
+      width: 100%;
+      max-width: 700px;
+      background: rgba(20,0,10,0.78);
+      border: 2px solid rgba(212,175,55,0.35);
+      border-radius: 28px;
+      backdrop-filter: blur(10px);
+      box-shadow:
+        0 0 60px rgba(0,0,0,0.5),
+        0 0 20px rgba(212,175,55,0.1);
+      padding: 50px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .composer::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 28px;
+      padding: 2px;
+      background: linear-gradient(135deg, rgba(212,175,55,0.5), transparent, rgba(212,175,55,0.3));
+      -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+    }
+
+    .title {
+      text-align: center;
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 3rem;
+      color: var(--gold);
+      margin-bottom: 10px;
+      text-shadow: 0 0 15px rgba(212,175,55,0.4);
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #f2d9a0;
+      margin-bottom: 40px;
+      font-size: 1.1rem;
+    }
+
+    .form-group {
+      margin-bottom: 24px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+      color: var(--gold-light);
+      font-size: 1.05rem;
+      letter-spacing: 1px;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      padding: 16px 18px;
+      border-radius: 14px;
+      border: 1px solid rgba(212,175,55,0.35);
+      background: rgba(255,255,255,0.06);
+      color: white;
+      font-size: 1rem;
+      font-family: 'EB Garamond', serif;
+      outline: none;
+      transition: 0.3s ease;
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 20px rgba(212,175,55,0.15);
+    }
+
+    textarea {
+      min-height: 180px;
+      resize: vertical;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 18px;
+      border: none;
+      border-radius: 16px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      font-family: 'Cinzel', serif;
+      font-weight: 700;
+      transition: 0.35s ease;
+    }
+
+    .generate-btn {
+      background: linear-gradient(135deg, #c89b2d, #f0d48b);
+      color: #2a1200;
+      margin-top: 10px;
+    }
+
+    .generate-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(212,175,55,0.25);
+    }
+
+    .result {
+      margin-top: 30px;
+      display: none;
+      animation: fadeIn 0.6s ease;
+    }
+
+    .link-box {
+      display: flex;
+      gap: 12px;
+      margin-top: 15px;
+    }
+
+    .generated-link {
+      flex: 1;
+      padding: 14px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(212,175,55,0.3);
+      color: #fff;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .copy-btn {
+      padding: 14px 22px;
+      border-radius: 12px;
+      border: none;
+      background: var(--wine-light);
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .copy-btn:hover {
+      background: #a01d42;
+    }
+
+    /* ================= VIEWER ================= */
+
+    .viewer {
+      display: none;
+      width: 100%;
+      min-height: 100vh;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      padding: 30px;
+      position: relative;
+    }
+
+    .royal-text {
+      text-align: center;
+      margin-bottom: 35px;
+      animation: fadeIn 1.2s ease;
+    }
+
+    .royal-text h2 {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 2.2rem;
+      color: var(--gold);
+      margin-bottom: 10px;
+    }
+
+    .royal-text p {
+      color: #f6dfaa;
+      font-size: 1.2rem;
+    }
+
+    /* Scroll */
+
+    .scroll-container {
+      position: relative;
+      width: 700px;
+      max-width: 95%;
+      cursor: pointer;
+      transition: transform 0.5s ease;
+    }
+
+    .scroll-container:hover {
+      transform: scale(1.02);
+    }
+
+    .scroll {
+      position: relative;
+      background:
+        radial-gradient(circle at top left, rgba(255,255,255,0.15), transparent 25%),
+        linear-gradient(to bottom, var(--parchment), var(--parchment-dark));
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow:
+        0 30px 60px rgba(0,0,0,0.45),
+        inset 0 0 30px rgba(120,80,20,0.15);
+    }
+
+    /* Closed State */
+
+    .closed-scroll {
+      height: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .scroll-roll {
+      position: absolute;
+      width: 100%;
+      height: 55px;
+      background: linear-gradient(to bottom, #c89d61, #9f7237);
+      z-index: 2;
+    }
+
+    .scroll-roll.top {
+      top: 0;
+      border-bottom: 4px solid #7a5525;
+    }
+
+    .scroll-roll.bottom {
+      bottom: 0;
+      border-top: 4px solid #7a5525;
+    }
+
+    .ribbon {
+      position: absolute;
+      width: 90px;
+      height: 100%;
+      background: linear-gradient(to right, #6a0017, #a4002f, #6a0017);
+      z-index: 4;
+      left: 50%;
+      transform: translateX(-50%);
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+      transition: all 1s ease;
+    }
+
+    .seal {
+      position: absolute;
+      width: 82px;
+      height: 82px;
+      background: radial-gradient(circle at top, #f5426f, #7b001d);
+      border-radius: 50%;
+      z-index: 5;
+      border: 5px solid #ffcb76;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: gold;
+      font-size: 2rem;
+      font-weight: bold;
+      box-shadow: 0 0 30px rgba(0,0,0,0.4);
+    }
+
+    .tap-text {
+      position: absolute;
+      bottom: 20px;
+      color: #5a2f12;
+      font-size: 1rem;
+      font-style: italic;
+      z-index: 6;
+    }
+
+    /* Open State */
+
+    .opened .ribbon {
+      transform: translateX(-50%) translateY(-300px) rotate(25deg);
+      opacity: 0;
+    }
+
+    .opened .closed-scroll {
+      height: auto;
+      min-height: 500px;
+      padding: 90px 80px;
+      align-items: flex-start;
+      animation: openScroll 2s ease forwards;
+    }
+
+    .opened .scroll-roll.top {
+      animation: rollUp 1.3s ease forwards;
+    }
+
+    .opened .scroll-roll.bottom {
+      animation: rollDown 1.3s ease forwards;
+    }
+
+    @keyframes rollUp {
+      to {
+        transform: translateY(-120%);
+      }
+    }
+
+    @keyframes rollDown {
+      to {
+        transform: translateY(120%);
+      }
+    }
+
+    @keyframes openScroll {
+      from {
+        opacity: 0.7;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    .message-content {
+      display: none;
+      color: var(--ink);
+      width: 100%;
+      position: relative;
+      z-index: 3;
+      animation: fadeIn 2s ease;
+    }
+
+    .opened .message-content {
+      display: block;
+    }
+
+    .message-title {
+      text-align: center;
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 2rem;
+      margin-bottom: 40px;
+      color: #4a2500;
+    }
+
+    .message-body {
+      font-size: 1.45rem;
+      line-height: 1.8;
+      white-space: pre-wrap;
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    .signature {
+      text-align: right;
+      font-size: 1.3rem;
+      font-style: italic;
+      margin-top: 40px;
+    }
+
+    /* Decorative corners */
+
+    .corner {
+      position: absolute;
+      width: 70px;
+      height: 70px;
+      border: 4px solid rgba(120,70,20,0.35);
+    }
+
+    .corner.tl {
+      top: 25px;
+      left: 25px;
+      border-right: none;
+      border-bottom: none;
+    }
+
+    .corner.tr {
+      top: 25px;
+      right: 25px;
+      border-left: none;
+      border-bottom: none;
+    }
+
+    .corner.bl {
+      bottom: 25px;
+      left: 25px;
+      border-right: none;
+      border-top: none;
+    }
+
+    .corner.br {
+      bottom: 25px;
+      right: 25px;
+      border-left: none;
+      border-top: none;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .composer {
+        padding: 35px 24px;
+      }
+
+      .title {
+        font-size: 2rem;
+      }
+
+      .opened .closed-scroll {
+        padding: 80px 35px;
+      }
+
+      .message-body {
+        font-size: 1.2rem;
+      }
+
+      .royal-text h2 {
+        font-size: 1.7rem;
+      }
+
+      .link-box {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="stars" id="stars"></div>
+
+  <div class="container">
+
+    <!-- ================= COMPOSER MODE ================= -->
+
+    <div class="composer" id="composer">
+
+      <h1 class="title">Royal Scroll Messenger</h1>
+
+      <p class="subtitle">
+        Create elegant royal letters and send them through magical scrolls.
+      </p>
+
+      <div class="form-group">
+        <label>Sender Name</label>
+        <input type="text" id="sender" placeholder="Enter sender name">
+      </div>
+
+      <div class="form-group">
+        <label>Receiver Name</label>
+        <input type="text" id="receiver" placeholder="Enter receiver name">
+      </div>
+
+      <div class="form-group">
+        <label>Your Royal Message</label>
+        <textarea id="message" placeholder="Write your heartfelt royal message..."></textarea>
+      </div>
+
+      <button class="btn generate-btn" onclick="generateLink()">
+        Create Royal Scroll
+      </button>
+
+      <div class="result" id="result">
+        <h3 style="color: var(--gold); margin-bottom: 15px;">
+          Your Royal Scroll is Ready
+        </h3>
+
+        <div class="link-box">
+          <div class="generated-link" id="generatedLink"></div>
+          <button class="copy-btn" onclick="copyLink()">Copy</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ================= VIEWER MODE ================= -->
+
+    <div class="viewer" id="viewer">
+
+      <div class="royal-text">
+        <h2 id="receiverText"></h2>
+        <p id="senderText"></p>
+      </div>
+
+      <div class="scroll-container" id="scrollContainer">
+
+        <div class="scroll" id="scroll">
+
+          <div class="closed-scroll">
+
+            <div class="scroll-roll top"></div>
+            <div class="scroll-roll bottom"></div>
+
+            <div class="ribbon"></div>
+
+            <div class="seal">✦</div>
+
+            <div class="tap-text">
+              Click the Royal Scroll to Open
+            </div>
+
+            <div class="message-content">
+
+              <div class="corner tl"></div>
+              <div class="corner tr"></div>
+              <div class="corner bl"></div>
+              <div class="corner br"></div>
+
+              <div class="message-title">
+                A Royal Message
+              </div>
+
+              <div class="message-body" id="messageBody"></div>
+
+              <div class="signature" id="signature"></div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+
+    // ================= STAR BACKGROUND =================
+
+    const starsContainer = document.getElementById("stars");
+
+    for (let i = 0; i < 140; i++) {
+      const star = document.createElement("div");
+      star.classList.add("star");
+
+      star.style.left = Math.random() * 100 + "%";
+      star.style.top = Math.random() * 100 + "%";
+      star.style.animationDelay = Math.random() * 5 + "s";
+      star.style.opacity = Math.random();
+
+      starsContainer.appendChild(star);
+    }
+
+    // ================= URL MODE CHECK =================
+
+    const params = new URLSearchParams(window.location.search);
+
+    if (
+      params.has("sender") &&
+      params.has("receiver") &&
+      params.has("message")
+    ) {
+
+      document.getElementById("composer").style.display = "none";
+      document.getElementById("viewer").style.display = "flex";
+
+      const sender = decodeURIComponent(atob(params.get("sender")));
+      const receiver = decodeURIComponent(atob(params.get("receiver")));
+      const message = decodeURIComponent(atob(params.get("message")));
+
+      document.getElementById("receiverText").innerText =
+        `${receiver}, you have received a royal message`;
+
+      document.getElementById("senderText").innerText =
+        `From ${sender}`;
+
+      document.getElementById("messageBody").innerText = message;
+
+      document.getElementById("signature").innerHTML =
+        `— ${sender}`;
+
+    }
+
+    // ================= GENERATE LINK =================
+
+    function generateLink() {
+
+      const sender = document.getElementById("sender").value.trim();
+      const receiver = document.getElementById("receiver").value.trim();
+      const message = document.getElementById("message").value.trim();
+
+      if (!sender || !receiver || !message) {
+        alert("Please fill in all fields.");
+        return;
+      }
+
+      const encodedSender = btoa(encodeURIComponent(sender));
+      const encodedReceiver = btoa(encodeURIComponent(receiver));
+      const encodedMessage = btoa(encodeURIComponent(message));
+
+      const url =
+        `${window.location.origin}${window.location.pathname}` +
+        `?sender=${encodedSender}` +
+        `&receiver=${encodedReceiver}` +
+        `&message=${encodedMessage}`;
+
+      document.getElementById("generatedLink").textContent = url;
+      document.getElementById("result").style.display = "block";
+    }
+
+    // ================= COPY LINK =================
+
+    function copyLink() {
+
+      const text =
+        document.getElementById("generatedLink").textContent;
+
+      navigator.clipboard.writeText(text);
+
+      alert("Royal Scroll link copied!");
+    }
+
+    // ================= SCROLL OPENING =================
+
+    const scrollContainer = document.getElementById("scrollContainer");
+
+    if (scrollContainer) {
+
+      let opened = false;
+
+      scrollContainer.addEventListener("click", () => {
+
+        if (opened) return;
+
+        opened = true;
+
+        playRoyalFanfare();
+
+        document
+          .getElementById("scroll")
+          .classList
+          .add("opened");
+      });
+    }
+
+    // ================= ROYAL FANFARE =================
+
+    function playRoyalFanfare() {
+
+      const AudioContext =
+        window.AudioContext || window.webkitAudioContext;
+
+      const ctx = new AudioContext();
+
+      const notes = [
+        { freq: 392.00, time: 0 },
+        { freq: 523.25, time: 0.22 },
+        { freq: 659.25, time: 0.45 },
+        { freq: 783.99, time: 0.7 },
+        { freq: 659.25, time: 1.0 },
+        { freq: 783.99, time: 1.25 }
+      ];
+
+      notes.forEach(note => {
+
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = "triangle";
+        osc.frequency.value = note.freq;
+
+        gain.gain.setValueAtTime(0, ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(
+          0.18,
+          ctx.currentTime + note.time + 0.02
+        );
+
+        gain.gain.exponentialRampToValueAtTime(
+          0.0001,
+          ctx.currentTime + note.time + 0.5
+        );
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(ctx.currentTime + note.time);
+        osc.stop(ctx.currentTime + note.time + 0.5);
+      });
+    }
+
+  </script>
+
+</body>
+</html>
